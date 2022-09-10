@@ -5,7 +5,8 @@ import io
 # Import package in vscode
 sys.path.append(".")
 from pylog import pylog
-from tests import MODEL, TEST_VALUE, FULL_MODEL
+from . import MODEL, TEST_VALUE, FULL_MODEL
+
 
 
 
