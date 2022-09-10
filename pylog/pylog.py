@@ -17,7 +17,7 @@ class PyLog:
         if if_print is not None:
             self.if_print = if_print
         # Get data
-        hour, minu, sec = self.get_time()
+        hour, minu, sec = self.__get_time()
         self.fucation = traceback.extract_stack()[1][2]
         # Acill color
         if model == "I":
@@ -45,21 +45,21 @@ class PyLog:
             f.write(colorless_word)
         return colorless_word
 
-    def get_time(self):
+    def __get_time(self): # pragma: no cover
 
         hour = time.localtime().tm_hour
         minu = time.localtime().tm_min
         sec = time.localtime().tm_sec
         if hour < 10:
-            hour = "0{0}".format(hour)
+            hour = f"0{hour}"
         if minu < 10:
-            minu = "0{0}".format(minu)
+            minu = f"0{minu}"
         if sec < 10:
-            sec = "0{0}".format(sec)
+            sec = f"0{sec}"
         return hour, minu, sec
 
-    def clean(self, if_confirm=True):
-        if if_confirm:
+    def clean(self, if_confirm=True): # pragma: no cover
+        if if_confirm:  
             self.logger(f"Confim delete {self.path} ", "W", True)
             i = input("Please input Y/N:")
             if i == "Y" or i == "y" or i == "yes":

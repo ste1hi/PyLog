@@ -5,4 +5,7 @@ environment:
 lint:
 	flake8 PyLog/  test/ --ignore=W293 --count
 test:
-	python -m unittest
+	coverage run --source pylog --parallel-mode -m unittest
+	coverage combine
+	coverage report
+
