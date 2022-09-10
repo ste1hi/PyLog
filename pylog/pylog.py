@@ -3,7 +3,6 @@ import time
 import traceback
 
 
-
 class PyLog:
 
     def __init__(self, if_print=True, path="./log.log"):
@@ -45,7 +44,7 @@ class PyLog:
             f.write(colorless_word)
         return colorless_word
 
-    def __get_time(self): # pragma: no cover
+    def __get_time(self):  # pragma: no cover
 
         hour = time.localtime().tm_hour
         minu = time.localtime().tm_min
@@ -58,8 +57,8 @@ class PyLog:
             sec = f"0{sec}"
         return hour, minu, sec
 
-    def clean(self, if_confirm=True): # pragma: no cover
-        if if_confirm:  
+    def clean(self, if_confirm=True):  # pragma: no cover
+        if if_confirm:
             self.logger(f"Confim delete {self.path} ", "W", True)
             i = input("Please input Y/N:")
             if i == "Y" or i == "y" or i == "yes":

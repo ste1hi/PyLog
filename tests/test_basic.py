@@ -3,11 +3,10 @@ import os
 import sys
 import io
 # Import package in vscode
-sys.path.append(".")
+sys.path.append(os.path.dirname(os.path.dirname
+                (os.path.abspath(__file__))))
 from pylog import pylog
 from . import MODEL, TEST_VALUE, FULL_MODEL
-
-
 
 
 class TestBasic(unittest.TestCase):
@@ -40,7 +39,6 @@ class TestBasic(unittest.TestCase):
         log.logger(TEST_VALUE, MODEL[0], False)
         self.assertMultiLineEqual(str(sys.stdout.getvalue()), '')
 
-
     def test_wrong_attribute(self):
         with self.assertRaises(AttributeError):
             log = pylog.PyLog()
@@ -51,4 +49,3 @@ class TestBasic(unittest.TestCase):
         log.logger(TEST_VALUE, MODEL[0])
         log.clean(False)
         self.assertFalse(os.path.exists(log.path))
-
