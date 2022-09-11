@@ -6,7 +6,7 @@ import io
 sys.path.append(os.path.dirname(os.path.dirname
                 (os.path.abspath(__file__))))
 from pylog import pylog
-from . import MODEL, TEST_VALUE, FULL_MODEL
+from tests import MODEL, TEST_VALUE, FULL_MODEL
 
 
 class TestBasic(unittest.TestCase):
