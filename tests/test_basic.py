@@ -49,3 +49,54 @@ class TestBasic(unittest.TestCase):
         log.logger(TEST_VALUE, MODEL[0])
         log.clean(False)
         self.assertFalse(os.path.exists(log.path))
+
+    def test_FPylog(self):
+        log = pylog.FPyLog()
+        i = 0
+        for _ in range(3):
+            sys.stdout = io.StringIO()
+            log.flogger(TEST_VALUE + "$f[cmd::]$" + TEST_VALUE, MODEL[i])
+            output = str(sys.stdout.getvalue())
+            part_out = output.split("\n")
+            self.assertEqual(part_out[0].split(":")[-1], f"{TEST_VALUE}")
+            # Test string can not include letter "m"
+            self.assertEqual(part_out[0].split("\033[0m")[0]
+                             .split("m")[-1], FULL_MODEL[i])
+
+            self.assertEqual(part_out[2].split(":")[-1], f"{TEST_VALUE}")
+            self.assertEqual(part_out[2].split("\033[0m")[0]
+                             .split("m")[-1], FULL_MODEL[i])
+            self.assertEqual(part_out[1], "0")
+            i += 1
+
+    def test_more_one_funtion(self):
+        log = pylog.FPyLog()
+        sys.stdout = io.StringIO()
+        log.flogger(TEST_VALUE + "$f[cmd::]$$f[cmd::]$" + TEST_VALUE, MODEL[0])
+        output = str(sys.stdout.getvalue())
+        self.assertIs(output, '')
+
+    def test_fprint(self):
+        log = pylog.FPyLog()
+        i = 0
+        for _ in range(3):
+            sys.stdout = io.StringIO()
+            log.flogger(TEST_VALUE, MODEL[i])
+            output = str(sys.stdout.getvalue())
+            self.assertEqual(output.split(":")[-1], f"{TEST_VALUE}\n")
+
+            # Test string can not include letter "m"
+            self.assertEqual(output.split("\033[0m")[0]
+                             .split("m")[-1], FULL_MODEL[i])
+        
+        i = 0
+        for _ in range(3):
+            sys.stdout = io.StringIO()
+            log.flogger(TEST_VALUE + "\\$f[cmd]$", MODEL[i])
+            output = str(sys.stdout.getvalue())
+            self.assertEqual(len(output.split("\n")), 2)
+            self.assertEqual(output.split(":")[-1], f"{TEST_VALUE}\\$f[cmd]$\n")
+
+            # Test string can not include letter "m"
+            self.assertEqual(output.split("\033[0m")[0]
+                             .split("m")[-1], FULL_MODEL[i])

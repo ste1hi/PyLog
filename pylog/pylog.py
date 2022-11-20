@@ -1,18 +1,25 @@
 import os
 import time
 import traceback
+import sys
+# Import package in vscode
+sys.path.append(os.path.dirname(os.path.dirname
+                (os.path.abspath(__file__))))
+from .utils import PARAMETER
+from typing import Optional, Any, Dict
 
 
 class PyLog:
 
-    def __init__(self, if_print=True, path="./log.log"):
+    def __init__(self, if_print: bool = True, path: str = "./log.log") -> None:
         self.if_print = if_print
         self.path = path
-        self.code = self.__init__.__code__
+        self.code = self.__init__.__code__  # type: ignore
         self.file_name = traceback.extract_stack()[1][0].split("/")[-1]\
             .split(".py")[0]
 
-    def logger(self, vaule, model, if_print=None):
+    def logger(self, vaule: str, model: str, if_print:
+               Optional[bool] = None) -> str:
         if if_print is not None:
             self.if_print = if_print
         # Get data
@@ -45,7 +52,6 @@ class PyLog:
         return colorless_word
 
     def __get_time(self):  # pragma: no cover
-
         hour = time.localtime().tm_hour
         minu = time.localtime().tm_min
         sec = time.localtime().tm_sec
@@ -57,7 +63,7 @@ class PyLog:
             sec = f"0{sec}"
         return hour, minu, sec
 
-    def clean(self, if_confirm=True):  # pragma: no cover
+    def clean(self, if_confirm: bool = True) -> None:  # pragma: no cover
         if if_confirm:
             self.logger(f"Confim delete {self.path} ", "W", True)
             i = input("Please input Y/N:")
@@ -67,3 +73,44 @@ class PyLog:
                 self.logger(f"Cancel delete {self.path} ", "E", True)
         else:
             os.remove(self.path)
+
+
+class FPyLog:
+
+    def __init__(self) -> None:
+        self.parameter = PARAMETER
+        self.if_print = True
+        self.pylog = PyLog()
+
+    def flogger(self, value: str, model: str, parameter:
+                Optional[Dict[str, bool]] = None) -> Any:
+
+        if parameter is not None:   # pragma: no cover
+            self.parameter = parameter
+            self.if_print = self.parameter["if_print"]
+
+        svalue = value.split("$f[")
+        tmp_value = value
+        if len(svalue) > 2:
+            pass
+        elif len(svalue) < 2:
+            self.pylog.logger(tmp_value, model, self.if_print)
+        else:
+            if svalue[0][-1] == "\\":
+                self.pylog.logger(tmp_value, model, self.if_print)
+            else:
+                cmmd = svalue[-1].split("]$")[0]
+                self.pylog.logger(svalue[0], model, self.if_print)
+                self.__run(cmmd, self.parameter)
+                self.pylog.logger(svalue[-1].split("]$")[-1],
+                                  model, self.if_print)
+
+    def __run(self, cmmd: str, parameter: Optional[dict] = None) -> Any:
+        commd = cmmd.partition("::")
+        i = 0
+        for each_cmmd in commd:
+            if each_cmmd == "::":
+                continue
+            elif each_cmmd == "cmd":
+                print(os.system(commd[i + 2]))
+            
