@@ -10,4 +10,5 @@ def aa():
     log = pylog.PyLog()
     log.logger("TEST", "w")
 
+
 aa()

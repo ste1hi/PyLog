@@ -95,7 +95,8 @@ class TestBasic(unittest.TestCase):
             log.flogger(TEST_VALUE + "\\$f[cmd]$", MODEL[i])
             output = str(sys.stdout.getvalue())
             self.assertEqual(len(output.split("\n")), 2)
-            self.assertEqual(output.split(":")[-1], f"{TEST_VALUE}\\$f[cmd]$\n")
+            self.assertEqual(output.split(":")[-1],
+                             f"{TEST_VALUE}\\$f[cmd]$\n")
 
             # Test string can not include letter "m"
             self.assertEqual(output.split("\033[0m")[0]
