@@ -6,10 +6,10 @@ import io
 sys.path.append(os.path.dirname(os.path.dirname
                 (os.path.abspath(__file__))))
 from pylog import pylog
-from tests import MODEL, TEST_VALUE, FULL_MODEL
+from tests import MODEL, TEST_VALUE, FULL_MODEL, PATH
 
 
-class TestBasic(unittest.TestCase):
+class TestPylog(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
@@ -22,40 +22,54 @@ class TestBasic(unittest.TestCase):
             log.logger(TEST_VALUE, model)
             self.assertTrue(os.path.exists(log.path))
 
-    def test_print(self):
-        log = pylog.PyLog()
-        i = 0
-        for _ in range(3):
-            sys.stdout = io.StringIO()
-            log.logger(TEST_VALUE, MODEL[i])
-            output = str(sys.stdout.getvalue())
-            self.assertEqual(output.split(":")[-1], f"{TEST_VALUE}\n")
+        log2 = pylog.PyLog(False, path=PATH)
+        for model in MODEL:
+            log2.logger(TEST_VALUE, model)
+            self.assertTrue(os.path.exists(PATH))
 
-            # Test string can not include letter "m"
-            self.assertEqual(output.split("\033[0m")[0]
-                             .split("m")[-1], FULL_MODEL[i])
-            i += 1
+    def test_print(self):
+        log = pylog.PyLog(path=PATH)
+        with open(PATH, "r") as f:
+            f.seek(0, 2)
+            i = 0
+            for _ in range(3):
+                sys.stdout = io.StringIO()
+                log.logger(TEST_VALUE, MODEL[i])
+                output = str(sys.stdout.getvalue())
+                self.assertEqual(output.split(":")[-1], f"{TEST_VALUE}\n")
+
+                # Test string can not include letter "m"
+                self.assertEqual(output.split("\033[0m")[0]
+                                .split("m")[-1], FULL_MODEL[i])   
+                self.assertEqual(f.readline().split(":")[-1], f"{TEST_VALUE}\n")       
+                i += 1
         sys.stdout = io.StringIO()
         log.logger(TEST_VALUE, MODEL[0], False)
         self.assertMultiLineEqual(str(sys.stdout.getvalue()), '')
+        
 
     def test_wrong_attribute(self):
         with self.assertRaises(AttributeError):
             log = pylog.PyLog()
             log.logger(TEST_VALUE, "A")
 
-    def test_clean(self):
-        log = pylog.PyLog()
-        log.logger(TEST_VALUE, MODEL[0])
-        log.clean(False)
-        self.assertFalse(os.path.exists(log.path))
+class TestFPlog(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.log = pylog.FPyLog()
+
+    @classmethod
+    def tearDownClass(self):
+        if os.path.exists(self.log.path):
+            os.remove(self.log.path)
+
 
     def test_FPylog(self):
-        log = pylog.FPyLog()
         i = 0
         for _ in range(3):
             sys.stdout = io.StringIO()
-            log.flogger(TEST_VALUE + "$f[cmd::]$" + TEST_VALUE, MODEL[i])
+            self.log.flogger(TEST_VALUE + "$f[cmd::python ./tests/test.py]$" + TEST_VALUE, MODEL[i])
             output = str(sys.stdout.getvalue())
             part_out = output.split("\n")
             self.assertEqual(part_out[0].split(":")[-1], f"{TEST_VALUE}")
@@ -66,22 +80,21 @@ class TestBasic(unittest.TestCase):
             self.assertEqual(part_out[2].split(":")[-1], f"{TEST_VALUE}")
             self.assertEqual(part_out[2].split("\033[0m")[0]
                              .split("m")[-1], FULL_MODEL[i])
-            self.assertEqual(part_out[1], "0")
+            print(part_out)
+            self.assertEqual(part_out[1], TEST_VALUE)
             i += 1
 
     def test_more_one_funtion(self):
-        log = pylog.FPyLog()
         sys.stdout = io.StringIO()
-        log.flogger(TEST_VALUE + "$f[cmd::]$$f[cmd::]$" + TEST_VALUE, MODEL[0])
+        self.log.flogger(TEST_VALUE + "$f[cmd::]$$f[cmd::]$" + TEST_VALUE, MODEL[0])
         output = str(sys.stdout.getvalue())
         self.assertIs(output, '')
 
     def test_fprint(self):
-        log = pylog.FPyLog()
         i = 0
         for _ in range(3):
             sys.stdout = io.StringIO()
-            log.flogger(TEST_VALUE, MODEL[i])
+            self.log.flogger(TEST_VALUE, MODEL[i])
             output = str(sys.stdout.getvalue())
             self.assertEqual(output.split(":")[-1], f"{TEST_VALUE}\n")
 
@@ -92,7 +105,7 @@ class TestBasic(unittest.TestCase):
         i = 0
         for _ in range(3):
             sys.stdout = io.StringIO()
-            log.flogger(TEST_VALUE + "\\$f[cmd]$", MODEL[i])
+            self.log.flogger(TEST_VALUE + "\\$f[cmd]$", MODEL[i])
             output = str(sys.stdout.getvalue())
             self.assertEqual(len(output.split("\n")), 2)
             self.assertEqual(output.split(":")[-1],
@@ -101,3 +114,4 @@ class TestBasic(unittest.TestCase):
             # Test string can not include letter "m"
             self.assertEqual(output.split("\033[0m")[0]
                              .split("m")[-1], FULL_MODEL[i])
+

@@ -1,6 +1,8 @@
-
 PARAMETER = {
     'cmd': True,
     'if_print': True,
-    'record': False
+    'record': 0,
+    'if_print_null': True,
+    'path': './log.log',
+
 }

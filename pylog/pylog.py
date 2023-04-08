@@ -2,11 +2,12 @@ import os
 import time
 import traceback
 import sys
+import subprocess
 # Import package in vscode
 sys.path.append(os.path.dirname(os.path.dirname
                 (os.path.abspath(__file__))))
 from .utils import PARAMETER
-from typing import Optional, Any, Dict
+from typing import Optional, Any
 
 
 class PyLog:
@@ -75,42 +76,67 @@ class PyLog:
             os.remove(self.path)
 
 
-class FPyLog:
+class FPyLog(PyLog):
 
-    def __init__(self) -> None:
-        self.parameter = PARAMETER
-        self.if_print = True
-        self.pylog = PyLog()
+    def __init__(self, **kwarg) -> None:
+        self.parameter: dict = PARAMETER
+        if kwarg is not None:   
+            self.__fix_parameter(kwarg)  
+        super().__init__(self.parameter["if_print"], self.parameter["path"])     #type:ignore 
 
-    def flogger(self, value: str, model: str, parameter:
-                Optional[Dict[str, bool]] = None) -> Any:
+    def flogger(self, value: str, model: str, **kwarg) -> Any:
 
-        if parameter is not None:   # pragma: no cover
-            self.parameter = parameter
-            self.if_print = self.parameter["if_print"]
-
+        if kwarg is not None:   
+            self.__fix_parameter(kwarg)
+        self.if_print = self.parameter["if_print"]
         svalue = value.split("$f[")
         tmp_value = value
-        if len(svalue) > 2:
+        if len(svalue) > 2:    # Multiple block command are not support now.
             pass
         elif len(svalue) < 2:
-            self.pylog.logger(tmp_value, model, self.if_print)
-        else:
-            if svalue[0][-1] == "\\":
-                self.pylog.logger(tmp_value, model, self.if_print)
-            else:
+            super().logger(tmp_value, model, self.if_print)
+        else:       
+            if  svalue[0] == "" or not svalue[0][-1] == "\\":
                 cmmd = svalue[-1].split("]$")[0]
-                self.pylog.logger(svalue[0], model, self.if_print)
+                if self.parameter['if_print_null']:
+                    super().logger(svalue[0], model, self.if_print)
+                else:
+                    if not svalue[0].strip() == '':
+                        super().logger(svalue[0], model, self.if_print)
                 self.__run(cmmd, self.parameter)
-                self.pylog.logger(svalue[-1].split("]$")[-1],
-                                  model, self.if_print)
+                if self.parameter['record'] == 1:
+                    super().logger(cmmd, model, False)
+                if self.parameter['if_print_null']:
+                    super().logger(svalue[0], model, self.if_print)
+                else:
+                    if not svalue[0].strip() == '':
+                        super().logger(svalue[0], model, self.if_print)
+            else:
+                super().logger(tmp_value, model, self.if_print)
 
-    def __run(self, cmmd: str, parameter: Optional[dict] = None) -> Any:
+    def __run(self, cmmd: str, parameter: dict) -> Any:
         commd = cmmd.partition("::")
         i = 0
-        for each_cmmd in commd:
-            if each_cmmd == "::":
-                continue
-            elif each_cmmd == "cmd":
-                print(os.system(commd[i + 2]))
+        if parameter['cmd'] == True:
+            for each_cmmd in commd:
+                if each_cmmd == "::":
+                    continue
+                elif each_cmmd == "cmd":
+                    run_cmd = commd[i + 2].split()
+                    out_put = str(subprocess.check_output(run_cmd)).strip("b").strip("'")    
+                    if self.if_print:
+                        print(out_put)
+                    if self.parameter['record'] == 2:
+                        with open(self.parameter["path"], "a") as f:
+                            f.write(out_put + "\n")
             
+    def __fix_parameter(self, parameter: dict) -> None:
+        for argument in PARAMETER.keys():
+            if argument in parameter.keys():
+                if not type(parameter[argument]) == type(PARAMETER[argument]):
+                    raise TypeError(f"{argument} argument need type {type(PARAMETER[argument])}\
+                                    instead of {type(parameter['if_print'])}")
+                else:
+                    self.parameter.update({argument: parameter[argument]})
+    
+
