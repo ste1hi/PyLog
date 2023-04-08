@@ -1,4 +1,0 @@
-[run]
-source = pylog
-omit = 
-    ./pylog/__main__.py
